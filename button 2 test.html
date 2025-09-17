@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Generic Clicker</title>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/erosson/swarm-numberformat@v0.1.0/dist/swarm-numberformat.min.js"></script>
+<script>
+    // Spielobjekt
+    var clicker = {
+        generics: 0,
+        upgrades: {
+            generic_machine: {
+                amount: 0,
+                cost: 10,
+                gps: 1,
+                hasun: true, // Jetzt sofort kaufbar
+                name: "Generics Machines"
+            },
+            generic_press: {
+                amount: 0,
+                cost: 50,
+                gps: 10,
+                hasun: true,
+                name: "Generics Press"
+            },
+            generic_factories: {
+                amount: 0,
+                cost: 150,
+                gps: 50,
+                hasun: true,
+                name: "Generics Factories"
+            },
+            generic_radioactive_factory: {
+                amount: 0,
+                cost: 1500,
+                gps: 1200,
+                hasun: true,
+                name: "Generics Radioactive Factory"
+            }
+        },
+        acheivs: [
+            {req: "clicker.generics > 0", gotten: false, text: "You have one generic"},
+            {req: "clicker.generics > 99", gotten: false, text: "Hundert generics"},
+            {req: "clicker.generics > 999999", gotten: false, text: "One million generics"},
+            {req: "clicker.generics > 999999999", gotten: false, text: "First billion generics"}
+        ]
+    };
+
+    var delay = 0;
+    var gps = 0;
+
+    // Funktion bei Upgrade-Klick
+    function thing_clicked(thing) {
+        if (clicker.upgrades[thing].cost <= clicker.generics) {
+            clicker.generics -= clicker.upgrades[thing].cost;
+            clicker.upgrades[thing].amount++;
+            clicker.upgrades[thing].cost = Math.round(clicker.upgrades[thing].cost * 1.1);
+            update_upgrades();
+        }
+    }
+
+    // Beim Laden der Seite
+    window.onload = function() {
+        // Spielstand laden
+        if (Cookies.get("clicker")) {
+            var savedData = JSON.parse(Cookies.get("clicker"));
+            for (var i in clicker.upgrades) {
+                if (!savedData.upgrades || !savedData.upgrades[i]) {
+                    if (!savedData.upgrades) savedData.upgrades = {};
+                    savedData.upgrades[i] = Object.assign({}, clicker.upgrades[i]);
+                }
+            }
+            clicker = savedData;
+        }
+
+        // Letzte Zeit laden und Generics nachholen
+        if (Cookies.get("lasttime")) {
+            var lastTime = Number(Cookies.get("lasttime"));
+            var now = Date.now();
+            var diffSeconds = Math.round((now - lastTime) / 1000);
+            var totalGps = 0;
+            for (var i in clicker.upgrades) {
+                totalGps += clicker.upgrades[i].amount * clicker.upgrades[i].gps;
+            }
+            if (diffSeconds > 0 && totalGps > 0) {
+                var gained = (diffSeconds * totalGps) / 20; // Annahme: 20 Ticks pro Sekunde
+                clicker.generics += gained;
+                document.querySelector("#acheivs").innerHTML += `<br>While you were gone...<br>You gained ${Math.floor(gained)} generics.`;
+            }
+        }
+
+        update_upgrades();
+        start_game_loop();
+    }
+
+    // Upgrades anzeigen
+    function update_upgrades() {
+        const container = document.querySelector("#upgrades");
+        container.innerHTML = "";
+        var totalGps = 0;
+        for (var i in clicker.upgrades) {
+            if (clicker.upgrades[i].hasun) {
+                container.innerHTML += `<br><button onclick="thing_clicked('${i}')">${clicker.upgrades[i].name}</button> - You have ${clicker.upgrades[i].amount}. Cost: ${clicker.upgrades[i].cost}`;
+                totalGps += clicker.upgrades[i].gps * clicker.upgrades[i].amount;
+            }
+        }
+        gps = totalGps;
+    }
+
+    // Haupt-Loop
+    function start_game_loop() {
+        setInterval(() => {
+            // Generics generieren
+            for (var i in clicker.upgrades) {
+                clicker.generics += (clicker.upgrades[i].amount * clicker.upgrades[i].gps) / 20;
+            }
+
+            // Achievements prüfen
+            for (var i in clicker.acheivs) {
+                const ach = clicker.acheivs[i];
+                try {
+                    if (!ach.gotten && Function('return ' + ach.req)()) {
+                        ach.gotten = true;
+                        document.querySelector("#acheivs").innerHTML += `<br>ACHIEVEMENT UNLOCKED: ${ach.text}`;
+                    }
+                } catch(e) {
+                    console.error("Fehler beim Auswerten der Bedingung:", e);
+                }
+            }
+
+            // Anzeige aktualisieren
+            document.querySelector("#generics").innerHTML = "You have " + Math.floor(clicker.generics) + " generics";
+
+            // Spielstand speichern
+            delay++;
+            if (delay >= 40) {
+                Cookies.set("clicker", JSON.stringify(clicker), {expires: 100});
+                Cookies.set("lasttime", Date.now(), {expires: 100});
+                delay = 0;
+            }
+        }, 50);
+    }
+</script>
+</head>
+<body>
+<h1 id="generics">You have 0 generics</h1>
+<button onclick="clicker.generics++">Get 1 generic</button>
+<div id="upgrades"></div>
+<br>
+<div id="acheivs" style="width: 400px; height: 300px; overflow: auto; border: 1px solid #000;"></div>
+</body>
+</html>
