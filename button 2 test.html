@@ -13,7 +13,7 @@
                 amount: 0,
                 cost: 10,
                 gps: 1,
-                hasun: true, // Jetzt sofort kaufbar
+                hasun: true,
                 name: "Generics Machines"
             },
             generic_press: {
@@ -59,6 +59,15 @@
         }
     }
 
+    // Funktion um alles zurückzusetzen
+    function reset_process() {
+        // Spielstand löschen
+        Cookies.remove("clicker");
+        Cookies.remove("lasttime");
+        // Seite neu laden
+        location.reload();
+    }
+
     // Beim Laden der Seite
     window.onload = function() {
         // Spielstand laden
@@ -100,6 +109,7 @@
         var totalGps = 0;
         for (var i in clicker.upgrades) {
             if (clicker.upgrades[i].hasun) {
+                console.log("Displaying upgrade:", clicker.upgrades[i].name);
                 container.innerHTML += `<br><button onclick="thing_clicked('${i}')">${clicker.upgrades[i].name}</button> - You have ${clicker.upgrades[i].amount}. Cost: ${clicker.upgrades[i].cost}`;
                 totalGps += clicker.upgrades[i].gps * clicker.upgrades[i].amount;
             }
@@ -134,8 +144,8 @@
             // Spielstand speichern
             delay++;
             if (delay >= 40) {
-                Cookies.set("clicker", JSON.stringify(clicker), {expires: 100});
-                Cookies.set("lasttime", Date.now(), {expires: 100});
+                Cookies.set("clicker", JSON.stringify(clicker), {expires: 1000});
+                Cookies.set("lasttime", Date.now(), {expires: 1000});
                 delay = 0;
             }
         }, 50);
@@ -148,5 +158,7 @@
 <div id="upgrades"></div>
 <br>
 <div id="acheivs" style="width: 400px; height: 300px; overflow: auto; border: 1px solid #000;"></div>
+<!-- Reset Button -->
+<button onclick="reset_process()">Reset Process</button>
 </body>
 </html>
