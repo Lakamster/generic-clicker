@@ -9,14 +9,14 @@
     var clicker = {
         generics: 0,
         upgrades: {
-            generic_machine: {
+            generic_Machine: {
                 amount: 0,
                 cost: 10,
                 gps: 1,
                 hasun: true,
                 name: "Generics Machines"
             },
-            generic_press: {
+            generic_Press: {
                 amount: 0,
                 cost: 50,
                 gps: 10,
@@ -36,13 +36,21 @@
                 gps: 1200,
                 hasun: true,
                 name: "Generics Radioactive Factory"
+            },
+            generic_world: {
+                amount: 0,
+                cost: 1000000,
+                gps: 40000,
+                hasun: true,
+                name: "Generics worlds"
             }
         },
-        acheivs: [
+        achivs: [
             {req: "clicker.generics > 0", gotten: false, text: "You have one generic"},
             {req: "clicker.generics > 99", gotten: false, text: "Hundert generics"},
             {req: "clicker.generics > 999999", gotten: false, text: "One million generics"},
-            {req: "clicker.generics > 999999999", gotten: false, text: "First billion generics"}
+            {req: "clicker.generics > 999999999", gotten: false, text: "First billion generics"},
+            {req: "clicker.generics > 99999999", gotten: false, text: "you have one hundred million generics"}
         ]
     };
 
@@ -61,16 +69,13 @@
 
     // Funktion um alles zurückzusetzen
     function reset_process() {
-        // Spielstand löschen
         Cookies.remove("clicker");
         Cookies.remove("lasttime");
-        // Seite neu laden
         location.reload();
     }
 
     // Beim Laden der Seite
     window.onload = function() {
-        // Spielstand laden
         if (Cookies.get("clicker")) {
             var savedData = JSON.parse(Cookies.get("clicker"));
             for (var i in clicker.upgrades) {
@@ -82,7 +87,6 @@
             clicker = savedData;
         }
 
-        // Letzte Zeit laden und Generics nachholen
         if (Cookies.get("lasttime")) {
             var lastTime = Number(Cookies.get("lasttime"));
             var now = Date.now();
@@ -92,9 +96,9 @@
                 totalGps += clicker.upgrades[i].amount * clicker.upgrades[i].gps;
             }
             if (diffSeconds > 0 && totalGps > 0) {
-                var gained = (diffSeconds * totalGps) / 20; // Annahme: 20 Ticks pro Sekunde
+                var gained = (diffSeconds * totalGps) / 20;
                 clicker.generics += gained;
-                document.querySelector("#acheivs").innerHTML += `<br>While you were gone...<br>You gained ${Math.floor(gained)} generics.`;
+                document.querySelector("#achivs").innerHTML += `<br>While you were gone...<br>You gained ${Math.floor(gained)} generics.`;
             }
         }
 
@@ -126,12 +130,12 @@
             }
 
             // Achievements prüfen
-            for (var i in clicker.acheivs) {
-                const ach = clicker.acheivs[i];
+            for (var i in clicker.achivs) {
+                const ach = clicker.achivs[i];
                 try {
                     if (!ach.gotten && Function('return ' + ach.req)()) {
                         ach.gotten = true;
-                        document.querySelector("#acheivs").innerHTML += `<br>ACHIEVEMENT UNLOCKED: ${ach.text}`;
+                        document.querySelector("#achivs").innerHTML += `<br>ACHIEVEMENT UNLOCKED: ${ach.text}`;
                     }
                 } catch(e) {
                     console.error("Fehler beim Auswerten der Bedingung:", e);
@@ -157,8 +161,7 @@
 <button onclick="clicker.generics++">Get 1 generic</button>
 <div id="upgrades"></div>
 <br>
-<div id="acheivs" style="width: 400px; height: 300px; overflow: auto; border: 1px solid #000;"></div>
-<!-- Reset Button -->
+<div id="achivs" style="width: 400px; height: 300px; overflow: auto; border: 1px solid #000;"></div>
 <button onclick="reset_process()">Reset Process</button>
 </body>
 </html>
