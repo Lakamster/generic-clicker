@@ -5,6 +5,19 @@
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/erosson/swarm-numberformat@v0.1.0/dist/swarm-numberformat.min.js"></script>
 <script>
+    // Funktion, um große Zahlen in Kurzform anzuzeigen
+    function formatNumber(num) {
+        if (num >= 1e9) {
+            return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'b'; // Milliarden
+        } else if (num >= 1e6) {
+            return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'm'; // Millionen
+        } else if (num >= 1e4) {
+            return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'k'; // Tausend
+        } else {
+            return num.toLocaleString(); // Kleinere Zahlen normal
+        }
+    }
+
     // Spielobjekt
     var clicker = {
         generics: 0,
@@ -133,9 +146,6 @@
 
         update_upgrades();
 
-        // Entferne die automatische Einstellung auf 10 Maschinen!
-        // Damit kannst du im Spiel kaufen, bis du 10 hast.
-
         start_game_loop();
     }
 
@@ -179,7 +189,7 @@
             }
 
             // Anzeige aktualisieren
-            document.querySelector("#generics").innerHTML = "You have " + Math.floor(clicker.generics) + " generics";
+            document.querySelector("#generics").innerHTML = "You have " + formatNumber(Math.floor(clicker.generics)) + " generics";
 
             // Spielstand speichern
             delay++;
