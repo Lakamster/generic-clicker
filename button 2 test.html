@@ -37,37 +37,66 @@
                 hasun: true,
                 name: "Generics Radioactive Factory"
             },
+            generic_Vulcanos: {
+                amount: 0,
+                cost: 80000,
+                gps: 60000,
+                hasun: true,
+                name: "Generics Vulcanos"
+            }, 
             generic_world: {
                 amount: 0,
                 cost: 1000000,
-                gps: 40000,
+                gps: 200000,
                 hasun: true,
                 name: "Generics worlds"
+            }, 
+            generic_moon: {
+                amount: 0,
+                cost: 8000000,
+                gps: 800000,
+                hasun: true,
+                name: "Generics moon"
+            },
+            "1.1x_Clicks": {
+                amount: 0,
+                cost: 100,
+                name: "1.1x Clicks"
             }
         },
         achivs: [
             {req: "clicker.generics > 0", gotten: false, text: "You have one generic"},
             {req: "clicker.generics > 99", gotten: false, text: "Hundert generics"},
             {req: "clicker.generics > 999999", gotten: false, text: "One million generics"},
+            {req: "clicker.generics > 99999999", gotten: false, text: "one hundred million generics"},
             {req: "clicker.generics > 999999999", gotten: false, text: "First billion generics"},
-            {req: "clicker.generics > 99999999", gotten: false, text: "you have one hundred million generics"}
+            {req: "clicker.upgrades['generic_Machine'].amount >= 150", gotten: false, text: "ultra machines"}
         ]
     };
 
     var delay = 0;
     var gps = 0;
+    var clickAmount = 1; // Anfangs Klickmenge
 
     // Funktion bei Upgrade-Klick
     function thing_clicked(thing) {
         if (clicker.upgrades[thing].cost <= clicker.generics) {
             clicker.generics -= clicker.upgrades[thing].cost;
             clicker.upgrades[thing].amount++;
+            if (thing === '1.1x_Clicks') {
+                clickAmount *= 1.12;
+            }
             clicker.upgrades[thing].cost = Math.round(clicker.upgrades[thing].cost * 1.1);
             update_upgrades();
         }
     }
 
-    // Funktion um alles zurückzusetzen
+    // Klick-Button
+    function click_generics() {
+        clicker.generics += clickAmount;
+    }
+
+    // Reset
     function reset_process() {
         Cookies.remove("clicker");
         Cookies.remove("lasttime");
@@ -103,6 +132,10 @@
         }
 
         update_upgrades();
+
+        // Entferne die automatische Einstellung auf 10 Maschinen!
+        // Damit kannst du im Spiel kaufen, bis du 10 hast.
+
         start_game_loop();
     }
 
@@ -112,10 +145,11 @@
         container.innerHTML = "";
         var totalGps = 0;
         for (var i in clicker.upgrades) {
-            if (clicker.upgrades[i].hasun) {
-                console.log("Displaying upgrade:", clicker.upgrades[i].name);
+            if (clicker.upgrades[i].hasun !== false) {
                 container.innerHTML += `<br><button onclick="thing_clicked('${i}')">${clicker.upgrades[i].name}</button> - You have ${clicker.upgrades[i].amount}. Cost: ${clicker.upgrades[i].cost}`;
-                totalGps += clicker.upgrades[i].gps * clicker.upgrades[i].amount;
+                if (clicker.upgrades[i].gps) {
+                    totalGps += clicker.upgrades[i].gps * clicker.upgrades[i].amount;
+                }
             }
         }
         gps = totalGps;
@@ -126,7 +160,9 @@
         setInterval(() => {
             // Generics generieren
             for (var i in clicker.upgrades) {
-                clicker.generics += (clicker.upgrades[i].amount * clicker.upgrades[i].gps) / 20;
+                if (clicker.upgrades[i].gps) {
+                    clicker.generics += (clicker.upgrades[i].amount * clicker.upgrades[i].gps) / 20;
+                }
             }
 
             // Achievements prüfen
@@ -158,7 +194,7 @@
 </head>
 <body>
 <h1 id="generics">You have 0 generics</h1>
-<button onclick="clicker.generics++">Get 1 generic</button>
+<button onclick="click_generics()">Get 1 generic</button>
 <div id="upgrades"></div>
 <br>
 <div id="achivs" style="width: 400px; height: 300px; overflow: auto; border: 1px solid #000;"></div>
